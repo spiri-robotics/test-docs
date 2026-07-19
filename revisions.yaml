@@ -18,17 +18,10 @@ regulator_facing: true
 distribution_statement: Uncontrolled when printed.
 
 revisions:
-  - revision: "0.1"
+  - revision: "1.0.0"
     # Set this to the date of the initial draft.
     date: 2026-01-01
-    summary: Initial draft.
+    summary: Initial release.
     author: Spiri Robotics
-    # A draft is marked as one on the cover page, in the PDF footer, and in the
-    # PDF filename, so a printed copy cannot be mistaken for an issued document.
-    #
-    # Remove this line to issue the revision. Because this document is
-    # regulator-facing, the build will then require `approver` and
-    # `effective_date` below -- and will reject "TODO" as either.
-    draft: true
-    # approver: A. Person
-    # effective_date: 2026-02-01
+    approver: Alex Davies
+    effective_date: 2026-07-19
