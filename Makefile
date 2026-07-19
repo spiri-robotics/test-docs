@@ -1,0 +1,54 @@
+# Command-line equivalents of the VS Code tasks in .vscode/tasks.json, for
+# people who prefer a terminal. Contributors are not expected to need this file.
+
+.PHONY: watch docs check update pdf dist ci lint clean
+
+# Live preview: builds, serves, and refreshes as files change.
+watch:
+	uv run sphinx-autobuild docs docs/_build/html --host 0.0.0.0 --port 8000
+
+# Build the HTML manual once.
+docs:
+	uv run sphinx-build -b html docs docs/_build/html
+
+# Build the way CI does: warnings are errors.
+check:
+	uv run sphinx-build -b html -W docs docs/_build/html
+
+# Pull the latest build setup from the template. Interactive: a newer template
+# may ask questions the old one did not. Review the diff before committing.
+update:
+	uvx copier update
+
+# Build the PDF. The first run installs the LaTeX toolchain into the container;
+# CI does this for you on every push.
+pdf:
+	bash .devcontainer/install-latex.sh
+	uv run sphinx-build -b latex docs docs/_build/latex
+	$(MAKE) -C docs/_build/latex all-pdf
+	@bash .devcontainer/show-pdf.sh
+
+# Produce the published documents under dist/, named for the document number and
+# revision -- byte-for-byte what CI uploads and what a release carries. Useful
+# for checking a filename or a cover page before tagging.
+dist: check pdf
+	@mkdir -p dist
+	@name=$$(uv run python -m spiri_docs name); \
+	uv run python -c "import shutil, sys; shutil.make_archive(sys.argv[1], 'zip', 'docs/_build/html')" \
+		"dist/$${name}_html"; \
+	cp "docs/_build/latex/$${name}.pdf" dist/; \
+	ls -1 dist/
+
+# Run the CI workflow locally, through the same runner the build server uses.
+# Needs act (https://github.com/nektos/act) and a container runtime; flags come
+# from .actrc, including where the artifacts are left.
+ci:
+	act push --workflows .github/workflows/docs.yml
+
+# Check prose against the Spiri style guide.
+lint:
+	vale sync
+	vale docs/
+
+clean:
+	rm -rf docs/_build

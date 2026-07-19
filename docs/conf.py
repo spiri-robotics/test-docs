@@ -1,0 +1,74 @@
+"""Sphinx configuration for Spiri Documentation Test Build.
+
+Theme and structure live here, because they are decided once per document.
+Anything that has to be true on *every* build -- the revision number, the PDF
+footer, validation of revisions.yaml -- lives in the spiri_docs extension
+instead, where it cannot drift out of sync across manuals.
+"""
+
+from __future__ import annotations
+
+project = "Spiri Documentation Test Build"
+author = "Spiri Robotics"
+copyright = "%Y, Spiri Robotics"  # noqa: A001 - the name Sphinx expects
+
+# `version` and `release` are deliberately not set here. spiri_docs sets both
+# from the current entry in revisions.yaml.
+
+extensions = [
+    "myst_parser",
+    "spiri_docs",
+]
+
+templates_path = ["_templates"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+
+# -- Prose ------------------------------------------------------------------
+
+# `substitution` is what makes {{ document_number }} and {{ revision }} work in
+# Markdown; the values come from revisions.yaml via spiri_docs.
+myst_enable_extensions = [
+    "colon_fence",
+    "deflist",
+    "substitution",
+]
+myst_heading_anchors = 3
+
+# -- HTML -------------------------------------------------------------------
+
+html_theme = "furo"
+html_static_path = ["_static"]
+html_css_files = ["custom.css"]
+html_title = "Spiri Documentation Test Build"
+
+# Furo has no `navigation_depth`: the left sidebar shows the toctree at whatever
+# `:maxdepth:` index.md asks for, and the right sidebar lists the current page's
+# own headings. Between them a reader can still land on a section number without
+# expanding anything, which is what the old setting was for.
+html_theme_options = {
+    "navigation_with_keys": True,
+    # Two files, not one tinted by CSS: the wordmark is black in one and white in
+    # the other, and `filter: invert()` on a multi-coloured mark would take the
+    # brand colours with it. Furo swaps these on the theme toggle.
+    "light_logo": "spiri-logo-light.svg",
+    "dark_logo": "spiri-logo-dark.svg",
+}
+
+# Colours -- including the light/dark hazard pairs -- live in _static/custom.css
+# rather than in `light_css_variables`/`dark_css_variables` here, so that the
+# house style stays in one file and stays legible as CSS.
+
+# -- PDF --------------------------------------------------------------------
+# The cover logo. pdflatex cannot read SVG, so spiri_docs converts this one to
+# PDF during a LaTeX build -- which is why it names the same file the HTML uses
+# rather than a separate rasterised copy. Rebranding means replacing the SVGs in
+# _static and nothing here. The light variant is correct: a cover is printed.
+spiri_docs_logo = "_static/spiri-logo-light.svg"
+# spiri_docs sets latex_documents (so the file is named for the document number
+# and revision) and appends the document-control preamble. What is left here is
+# page setup, which is a per-document choice.
+latex_elements = {
+    "papersize": "letterpaper",
+    "pointsize": "11pt",
+    "figure_align": "htbp",
+}

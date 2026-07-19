@@ -1,0 +1,244 @@
+# Contributing to Spiri Documentation Test Build
+
+This manual is written in plain text files that live in Git. You do not need to
+be a programmer to edit it, and you do not need to install Python, Sphinx, or
+anything else by hand — the setup below installs a self-contained environment
+that has all of it already.
+
+---
+
+## Setting up
+
+You need two free programs: **VS Code** (the editor) and **Docker Desktop**
+(which runs the document toolchain in the background so you never have to
+install or configure it yourself). This is a one-time setup of maybe twenty
+minutes, mostly waiting for downloads. Afterwards it works offline.
+
+### Windows
+
+1. Install **Docker Desktop**:
+   <https://www.docker.com/products/docker-desktop/> — choose the Windows
+   installer. When it asks, leave **"Use WSL 2 instead of Hyper-V"** ticked.
+2. Restart when it asks you to. On first launch Docker may install a Windows
+   component called WSL 2 and ask you to restart again — let it.
+3. Install **VS Code**: <https://code.visualstudio.com/>
+4. Open VS Code, and install the **Dev Containers** extension: click the
+   Extensions icon in the left bar (four squares), search `Dev Containers`,
+   click **Install** on the one published by Microsoft.
+
+### macOS
+
+1. Install **Docker Desktop**:
+   <https://www.docker.com/products/docker-desktop/> — pick **Apple Silicon** if
+   your Mac is an M1/M2/M3/M4, or **Intel** for anything older. If you are not
+   sure: Apple menu → About This Mac, and look at "Chip" or "Processor".
+2. Open Docker Desktop once from Applications and leave it running. It needs to
+   be running whenever you work on the manual — you will see a whale icon in the
+   menu bar.
+3. Install **VS Code**: <https://code.visualstudio.com/>
+4. Open VS Code, and install the **Dev Containers** extension: click the
+   Extensions icon in the left bar (four squares), search `Dev Containers`,
+   click **Install** on the one published by Microsoft.
+
+### Then, on either platform
+
+1. Get a copy of this repository. In VS Code, press `Ctrl+Shift+P`
+   (`Cmd+Shift+P` on a Mac), type `Git: Clone`, press Enter, and paste the
+   repository URL. Choose a folder to keep it in.
+2. When VS Code asks **"Open the cloned repository?"**, click **Open**.
+3. VS Code will notice this project has a container and show
+   **"Reopen in Container"** in the bottom-right. Click it.
+
+   Missed the prompt? Press `Ctrl+Shift+P` / `Cmd+Shift+P` and run
+   **Dev Containers: Reopen in Container**.
+
+4. The first build takes a few minutes — it is downloading the toolchain. After
+   that it is a few seconds. You will know it has finished when the terminal at
+   the bottom says `Ready.`
+
+---
+
+## Writing
+
+The manual is the `.md` files in the [`docs/`](docs/) folder. They are
+**Markdown**: ordinary text with a few marks for structure.
+
+```markdown
+# A chapter heading
+
+## A section heading
+
+Ordinary paragraphs need no marks at all.
+
+- a bullet
+- another bullet
+
+1. a numbered step
+2. another step
+
+**Bold text** and *italic text*.
+```
+
+### Seeing your changes
+
+Press **`Ctrl+Shift+B`** (**`Cmd+Shift+B`** on a Mac). The manual builds and
+opens in a panel beside your text, and it refreshes by itself every time you
+stop typing for a moment. Leave it running while you work.
+
+### Safety notices
+
+Use these for anything a reader could be hurt by. Type them exactly like this:
+
+````markdown
+:::{danger}
+Will cause death or serious injury if not avoided.
+:::
+
+:::{warning}
+Could cause death or serious injury if not avoided.
+:::
+
+:::{caution}
+May damage the aircraft or equipment.
+:::
+
+:::{note}
+Useful information, not a hazard.
+:::
+````
+
+### Checking your writing
+
+**Terminal → Run Task → Check writing style** runs the house style guide over
+the manual and lists anything it would like changed. It is advisory: suggestions
+are worth reading, but nothing is blocked if you disagree with one.
+
+### Silencing the style checker
+
+Sometimes the checker is wrong — a part number reads as a misspelling, or a
+sentence has to be passive because the aircraft is what matters, not who acted.
+You can switch it off for a passage with two comments:
+
+```markdown
+<!-- vale off -->
+Torque to 4.5 N·m as specified by the airframe manufacturer.
+<!-- vale on -->
+```
+
+Everything between the two is left alone. **Do not forget the `vale on`** — if
+you leave it out, the rest of the file goes unchecked and nobody will notice.
+
+Better, when you know which suggestion you are dismissing, is to switch off only
+that one. The rule name is the last thing on each line of the checker's output —
+`Microsoft.Passive` in this example:
+
+```markdown
+<!-- vale Microsoft.Passive = NO -->
+Torque to 4.5 N·m as specified by the airframe manufacturer.
+<!-- vale Microsoft.Passive = YES -->
+```
+
+Everything else stays checked, so a genuine typo in that passage is still
+caught.
+
+These comments do not appear in the built manual — not on the website and not in
+the PDF. They work anywhere in a page, including inside a `:::{warning}` block
+and inside a list. There is no way to silence one line from within that line;
+the comments go on the lines around it.
+
+A word of restraint: the checker is advisory, so an unwanted suggestion costs
+you nothing but the reading of it. Silencing is for the case where the same
+false alarm keeps interrupting the same passage. If you find yourself silencing
+the same rule all over the manual, the rule is a poor fit for the kind of
+document this is — say so to the document owner rather than papering over it,
+because that is a fix everyone benefits from.
+
+A proper noun the checker does not know — a product name, a supplier, a place —
+is not a case for silencing at all. Add it to
+[`styles/config/vocabularies/Spiri/accept.txt`](styles/config/vocabularies/Spiri/accept.txt),
+one per line, and it is accepted everywhere in the manual.
+
+### Checking the manual is sound
+
+**Terminal → Run Task → Check the manual for problems** builds it once and
+reports broken cross-references and anything else that would fail on the
+website. Worth doing before you share your changes.
+
+### Updating the tooling
+
+**Terminal → Run Task → Update the tooling** pulls the latest build setup from
+the template. It may ask you questions in the terminal — a newer template
+sometimes has options the one you started from did not; the answers you gave
+last time are offered as defaults, so pressing Enter through them is fine.
+
+It touches only the build setup, never your prose, but look over the changes in
+the Source Control panel before committing them.
+
+---
+
+## Adding a picture
+
+Put the image file in `docs/_static/`, then refer to it:
+
+```markdown
+![A description of the picture for someone who cannot see it](_static/my-picture.png)
+```
+
+The description is not optional — it is what a screen reader says aloud, and
+what appears if the image fails to load.
+
+---
+
+## Sharing your changes
+
+You do not need to use Git on the command line. In VS Code:
+
+1. Click the **Source Control** icon in the left bar (a branching line). Your
+   edited files are listed.
+2. Type a short message saying what you changed — "Corrected torque values in
+   maintenance chapter" — in the box at the top.
+3. Click **Commit**, then **Sync Changes**.
+
+If you have been asked to work on a branch rather than directly on `main`, click
+the branch name in the bottom-left corner first and choose
+**Create new branch**.
+
+---
+
+## Revisions
+
+`revisions.yaml` in the top folder records every issued version of this manual.
+It is the *only* place a revision number is written — it fills in the cover
+page, the page footers, and the name of the PDF automatically.
+
+While a revision is being written it is marked `draft: true`, and the manual
+says so on its cover and in its footer so a printed copy cannot be mistaken for
+a finished one.
+
+**Issuing a revision is a deliberate act** — check with the document owner
+before removing `draft: true` or adding a new entry.
+
+This is a regulator-facing document, so every issued revision must name an
+approver and an effective date. The manual will refuse to build without them,
+and will not accept `TODO` as an answer.
+
+---
+
+## If something goes wrong
+
+**"Reopen in Container" does nothing, or errors.**
+Check Docker Desktop is actually running — look for the whale icon in your menu
+bar (macOS) or system tray (Windows). Start it, wait for it to say it is
+running, then try again.
+
+**The preview panel is blank or stuck.**
+Close the panel, then press `Ctrl+Shift+B` / `Cmd+Shift+B` again.
+
+**Everything is broken and I do not know why.**
+Press `Ctrl+Shift+P` / `Cmd+Shift+P` and run **Dev Containers: Rebuild
+Container**. This throws away the environment and builds a fresh one; it cannot
+lose your written work, which is saved in the files themselves.
+
+**Still stuck.** Open an issue on the repository, or ask the document owner.
+Nothing here is your fault — if a step above was unclear, that is worth fixing,
+so please say which one.

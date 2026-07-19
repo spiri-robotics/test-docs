@@ -1,0 +1,35 @@
+# This project has no Python package -- it is prose. The only reason pyproject
+# exists is to pin the tools that build the document, so every contributor and CI
+# render it identically. With no [build-system] section, uv treats this as a
+# "virtual" project: it installs the dependencies and never tries to build this
+# directory as a package.
+[project]
+name = "spiri-documentation-test-build"
+version = "0"  # The real version lives in revisions.yaml; this is never used.
+description = "Testing spiri's documentation builds and system."
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+docs = [
+    "sphinx>=8",
+    "furo>=2025.12",
+    "myst-parser>=4",
+    # Live preview: what the "Preview the manual" task in VS Code runs.
+    "sphinx-autobuild>=2024.10",
+    # Revision control, PDF document control, and build-time validation.
+    # https://github.com/spiri-robotics/spiri-docs-tooling
+    #
+    # Pinned exactly, and to the template's own release: the two ship as a pair
+    # and conf.py is written against a specific version of the extension. A
+    # range lets uv resolve an older one that ignores a config value conf.py
+    # sets -- which costs you the cover logo and says nothing, because an
+    # unknown `spiri_docs_*` value is not an error. `copier update` moves this
+    # with the rest of the template. Widen it by hand if you need to.
+    "spiri-docs==0.1.3",
+]
+
+# Until spiri-docs is published to PyPI, point uv at a local checkout:
+#
+# [tool.uv.sources]
+# spiri-docs = { path = "../spiri-docs-tooling/packages/spiri-docs", editable = true }
