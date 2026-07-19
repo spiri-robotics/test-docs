@@ -45,9 +45,10 @@ dist: check pdf
 ci:
 	act push --workflows .github/workflows/docs.yml
 
-# Check prose against the Spiri style guide.
+# Check prose against the Spiri style guide. The script fetches the rules the
+# first time and does nothing thereafter; see the comment at the top of it.
 lint:
-	vale sync
+	@bash .devcontainer/sync-styles.sh
 	vale docs/
 
 clean:
