@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+#
+# Runs once, when the container is first created. Everything a contributor needs
+# is installed here so that opening the folder is the only setup step.
+
+set -euo pipefail
+
+# The audience for this script is someone who has never seen a terminal. A bare
+# non-zero exit leaves them with a wall of tool output and no idea what to do,
+# so say something actionable instead.
+on_error() {
+  cat >&2 <<'HELP'
+
+  ------------------------------------------------------------------
+  Setup did not finish.
+
+  This is usually a network problem on the first run. Try:
+
+    Ctrl+Shift+P (Cmd+Shift+P on a Mac)
+      -> "Dev Containers: Rebuild Container"
+
+  If it fails again, copy the output above into an issue on the
+  repository, or send it to the document owner. It is not something
+  you have done wrong.
+  ------------------------------------------------------------------
+
+HELP
+}
+trap on_error ERR
+
+echo "Installing the document toolchain..."
+pip install --quiet --upgrade uv
+uv sync --group docs
+
+# The logo is SVG, which pdflatex cannot read, so the build converts it. This is
+# an apt package rather than a Python one because every usable SVG renderer is a
+# binding to a C library -- installing the binary is the honest version of that.
+# Without it the document still builds; the PDF cover just has no logo.
+echo "Installing the SVG converter (for the PDF cover logo)..."
+sudo apt-get update -qq
+sudo apt-get install -y -qq --no-install-recommends librsvg2-bin
+
+
+# Vale ships as a single binary. Pinned rather than "latest" so a container built
+# today and one built next year check the prose against the same rules.
+VALE_VERSION="3.15.1"
+
+case "$(uname -m)" in
+  x86_64 | amd64) VALE_ARCH="64-bit" ;;
+  aarch64 | arm64) VALE_ARCH="arm64" ;;  # Apple Silicon
+  *)
+    echo "warning: no Vale build for $(uname -m); skipping style checker" >&2
+    VALE_ARCH=""
+    ;;
+esac
+
+if [ -n "$VALE_ARCH" ]; then
+  echo "Installing Vale ${VALE_VERSION} (${VALE_ARCH})..."
+  url="https://github.com/errata-ai/vale/releases/download/v${VALE_VERSION}/vale_${VALE_VERSION}_Linux_${VALE_ARCH}.tar.gz"
+  curl -sSfL "$url" | sudo tar -xz -C /usr/local/bin vale
+  sudo chmod +x /usr/local/bin/vale
+
+  # Fetch the style rules named in .vale.ini. Without network this is not fatal:
+  # the document still builds, only the style checker is unavailable.
+  vale sync || echo "warning: could not fetch style rules; 'Check writing style' will not work" >&2
+fi
+
+cat <<'DONE'
+
+  Ready.
+
+  Press Ctrl+Shift+B (Cmd+Shift+B on a Mac) to preview the manual.
+  It reopens in a panel and refreshes as you type.
+
+DONE
